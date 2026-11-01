@@ -1,0 +1,10 @@
+---
+// 개발 서버에서만 보이는 '예시' 표시입니다. 배포된 사이트에는 나오지 않습니다.
+interface Props {
+  show?: boolean;
+}
+const { show = false } = Astro.props;
+const visible = import.meta.env.DEV && show;
+---
+
+{visible && <span class="example-mark" title="예시 내용입니다. 본인 내용으로 바꾸세요.">예시</span>}

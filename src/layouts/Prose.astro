@@ -1,0 +1,19 @@
+---
+// 글과 프로젝트 상세 페이지용. 코드 글꼴과 수식 스타일은 이 페이지들에서만 불러옵니다.
+// Base 를 먼저 불러와야 global.css 다음에 prose.css 가 적용됩니다.
+import Base from './Base.astro';
+import '@fontsource/ibm-plex-mono/400.css';
+import 'katex/dist/katex.min.css';
+import '../styles/prose.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  current?: 'projects' | 'notes';
+}
+const { title, description, current } = Astro.props;
+---
+
+<Base title={title} description={description} current={current}>
+  <slot />
+</Base>

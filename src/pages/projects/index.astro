@@ -1,0 +1,12 @@
+---
+import ProjectList from '../../components/ProjectList.astro';
+import Base from '../../layouts/Base.astro';
+import { getProjects } from '../../lib/content';
+
+const projects = await getProjects();
+---
+
+<Base title="프로젝트" current="projects">
+  <h1 class="page-title">프로젝트</h1>
+  <ProjectList projects={projects} headingLevel={2} />
+</Base>

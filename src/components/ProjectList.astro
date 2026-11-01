@@ -1,0 +1,34 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ExampleMark from './ExampleMark.astro';
+import { projectYear } from '../lib/content';
+import { url } from '../lib/url';
+
+interface Props {
+  projects: CollectionEntry<'projects'>[];
+  headingLevel?: 2 | 3;
+}
+const { projects, headingLevel = 3 } = Astro.props;
+const Heading = headingLevel === 2 ? 'h2' : 'h3';
+---
+
+<ul class="projects">
+  {
+    projects.map((project) => {
+      const { title, summary, period, context, team, example } = project.data;
+      const contextLine = [context, team].filter(Boolean).join(', ');
+      const year = projectYear(period);
+      return (
+        <li>
+          <Heading class="project-title">
+            <a href={url(`/projects/${project.id}/`)}>{title}</a>
+            {year && <span class="project-year"> ({year})</span>}
+            <ExampleMark show={example} />
+          </Heading>
+          <p class="project-summary">{summary}</p>
+          {contextLine && <p class="project-context">{contextLine}</p>}
+        </li>
+      );
+    })
+  }
+</ul>

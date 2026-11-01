@@ -1,0 +1,243 @@
+---
+import DatedList from '../components/DatedList.astro';
+import ExampleMark from '../components/ExampleMark.astro';
+import ProjectList from '../components/ProjectList.astro';
+import Base from '../layouts/Base.astro';
+import { activities, awards, news, publications, reading, site } from '../data/site';
+import { existsSync } from 'node:fs';
+import { assertNoExamples, getNotes, getProjects, recentNews } from '../lib/content';
+import { formatDot, isoDate } from '../lib/dates';
+import { internalLinks, renderInline } from '../lib/markup';
+import { url } from '../lib/url';
+
+const projects = await getProjects();
+const notes = await getNotes();
+const latestNotes = notes.slice(0, 5);
+const newsItems = recentNews(news, new Date());
+const readingItems = reading.slice(0, 3);
+const contact = site.contact;
+const myNames = new Set([site.name, site.nameEn]);
+
+assertNoExamples([
+  ...news.filter((n) => n.example).map((n) => `site.ts 소식 '${n.text}'`),
+  ...reading.filter((r) => r.example).map((r) => `site.ts 논문 '${r.title}'`),
+]);
+
+// site.ts 에 손으로 적은 내부 링크가 실제로 있는 페이지를 가리키는지 확인합니다.
+// (예시 프로젝트를 지웠는데 첫 문단 링크가 남아 있는 경우 등)
+const routes = new Set([
+  '/',
+  '/projects/',
+  '/notes/',
+  '/en/',
+  ...projects.map((p) => `/projects/${p.id}/`),
+  ...notes.map((n) => `/notes/${n.id}/`),
+]);
+const brokenLinks = [...internalLinks(site.intro), ...news.flatMap((n) => (n.href?.startsWith('/') ? [n.href] : []))].filter(
+  (href) => !routes.has(href.split('#')[0]) && !existsSync(`public${href}`),
+);
+if (brokenLinks.length > 0) {
+  throw new Error(`site.ts 의 링크가 없는 페이지를 가리킵니다: ${brokenLinks.join(', ')}`);
+}
+---
+
+<Base nav={false}>
+  <h1 class="visually-hidden">{site.name} ({site.nameEn})</h1>
+
+  <header class="intro-block">
+    {site.photo && <img class="photo" src={url(site.photo)} alt={`${site.name} 사진`} width="240" height="320" />}
+    <p class="intro" set:html={renderInline(site.intro)} />
+    <p class="about">{site.about}</p>
+    <ul class="contact">
+      {
+        contact.email && (
+          <li>
+            <a href={`mailto:${contact.email}`}>{contact.email}</a>
+          </li>
+        )
+      }
+      {
+        contact.cv && (
+          <li>
+            <a href={url(contact.cv)}>CV{contact.cvUpdated && ` (${contact.cvUpdated})`}</a>
+          </li>
+        )
+      }
+      {
+        contact.github && (
+          <li>
+            <a href={contact.github}>GitHub</a>
+          </li>
+        )
+      }
+      {
+        contact.linkedin && (
+          <li>
+            <a href={contact.linkedin}>LinkedIn</a>
+          </li>
+        )
+      }
+      {
+        contact.huggingface && (
+          <li>
+            <a href={contact.huggingface}>Hugging Face</a>
+          </li>
+        )
+      }
+      {
+        contact.scholar && (
+          <li>
+            <a href={contact.scholar}>Google Scholar</a>
+          </li>
+        )
+      }
+      <li>
+        <a href={url('/en/')} lang="en" hreflang="en">English</a>
+      </li>
+    </ul>
+  </header>
+
+  {
+    publications.length > 0 && (
+      <section aria-labelledby="publications">
+        <h2 class="section-title" id="publications">
+          논문 및 발표
+        </h2>
+        <ul class="papers">
+          {publications.map((pub) => (
+            <li>
+              <span class="paper-title">{pub.title}</span>
+              <span class="paper-cite">
+                {pub.authors.map((author, i) => (
+                  <>
+                    {i > 0 && ', '}
+                    {myNames.has(author) ? <strong>{author}</strong> : author}
+                  </>
+                ))}
+              </span>
+              <span class="paper-cite">
+                {pub.venue}
+                {pub.type && ` (${pub.type})`}
+              </span>
+              {pub.links && pub.links.length > 0 && (
+                <ul class="paper-links">
+                  {pub.links.map((link) => (
+                    <li>
+                      <a href={link.href}>{link.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    projects.length > 0 && (
+      <section aria-labelledby="projects">
+        <h2 class="section-title" id="projects">
+          프로젝트
+        </h2>
+        <ProjectList projects={projects} />
+      </section>
+    )
+  }
+
+  {
+    awards.length > 0 && (
+      <section aria-labelledby="awards">
+        <h2 class="section-title" id="awards">
+          수상
+        </h2>
+        <DatedList items={awards} />
+      </section>
+    )
+  }
+
+  {
+    activities.length > 0 && (
+      <section aria-labelledby="activities">
+        <h2 class="section-title" id="activities">
+          활동
+        </h2>
+        <DatedList items={activities} />
+      </section>
+    )
+  }
+
+  {
+    latestNotes.length > 0 && (
+      <section aria-labelledby="notes">
+        <h2 class="section-title" id="notes">
+          글
+        </h2>
+        <ol class="dated dated--stack">
+          {latestNotes.map((note) => (
+            <li>
+              <time class="date" datetime={isoDate(note.data.date)}>
+                {formatDot(note.data.date)}
+              </time>
+              <span>
+                <a href={url(`/notes/${note.id}/`)}>{note.data.title}</a>
+                <ExampleMark show={note.data.example} />
+              </span>
+            </li>
+          ))}
+        </ol>
+        {notes.length > latestNotes.length && (
+          <p class="more">
+            <a href={url('/notes/')}>전체 글 보기</a>
+          </p>
+        )}
+      </section>
+    )
+  }
+
+  {
+    newsItems.length > 0 && (
+      <section aria-labelledby="news">
+        <h2 class="section-title" id="news">
+          소식
+        </h2>
+        <ul class="dated dated--month">
+          {newsItems.map((item) => (
+            <li>
+              <span class="date">{item.date}</span>
+              <span>
+                {item.href ? <a href={url(item.href)}>{item.text}</a> : item.text}
+                <ExampleMark show={item.example} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    readingItems.length > 0 && (
+      <section aria-labelledby="reading">
+        <h2 class="section-title" id="reading">
+          읽고 있는 논문
+        </h2>
+        <ul class="papers">
+          {readingItems.map((paper) => (
+            <li>
+              <a class="paper-title" href={paper.href} lang="en">
+                {paper.title}
+              </a>
+              <ExampleMark show={paper.example} />
+              <span class="paper-cite" lang="en">
+                {paper.authors}, {paper.venue} {paper.year}
+              </span>
+              {paper.note && <p class="paper-note">{paper.note}</p>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>

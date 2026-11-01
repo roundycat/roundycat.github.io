@@ -1,0 +1,35 @@
+---
+import ExampleMark from '../../components/ExampleMark.astro';
+import Base from '../../layouts/Base.astro';
+import { getNotes } from '../../lib/content';
+import { formatDot, isoDate } from '../../lib/dates';
+import { url } from '../../lib/url';
+
+// 글이 하나도 없으면 메뉴와 첫 화면에서 이 페이지로 가는 링크가 숨겨지고, 검색에도 나오지 않게 합니다.
+const notes = await getNotes();
+---
+
+<Base title="글" current="notes" noindex={notes.length === 0}>
+  <h1 class="page-title">글</h1>
+  {
+    notes.length > 0 ? (
+      <ol class="dated dated--stack">
+        {notes.map((note) => (
+          <li>
+            <time class="date" datetime={isoDate(note.data.date)}>
+              {formatDot(note.data.date)}
+            </time>
+            <span>
+              <a href={url(`/notes/${note.id}/`)}>{note.data.title}</a>
+              <ExampleMark show={note.data.example} />
+            </span>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <p>
+        아직 올린 글이 없습니다. <a href={url('/projects/')}>프로젝트</a>를 먼저 보세요.
+      </p>
+    )
+  }
+</Base>

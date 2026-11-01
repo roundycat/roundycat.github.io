@@ -1,0 +1,83 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+import { getProjects } from '../lib/content';
+import { url } from '../lib/url';
+
+const projects = (await getProjects()).filter((p) => p.data.titleEn && p.data.summaryEn);
+const contact = site.contact;
+---
+
+<Base title={site.nameEn} description={site.bioEn} lang="en" nav={false}>
+  <h1 class="page-title">{site.nameEn}</h1>
+  <p>{site.bioEn}</p>
+  <p>Most of this site is written in Korean. <a href={url('/')} lang="ko" hreflang="ko">한국어</a></p>
+
+  {
+    projects.length > 0 && (
+      <section aria-labelledby="projects">
+        <h2 class="section-title" id="projects">
+          Projects
+        </h2>
+        <ul class="projects">
+          {projects.map((project) => (
+            <li>
+              <h3 class="project-title">
+                <a href={url(`/projects/${project.id}/`)}>{project.data.titleEn}</a>
+              </h3>
+              <p class="project-summary">{project.data.summaryEn}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section aria-labelledby="contact">
+    <h2 class="section-title" id="contact">Contact</h2>
+    <ul class="contact">
+      {
+        contact.email && (
+          <li>
+            <a href={`mailto:${contact.email}`}>{contact.email}</a>
+          </li>
+        )
+      }
+      {
+        contact.cv && (
+          <li>
+            <a href={url(contact.cv)}>CV</a>
+          </li>
+        )
+      }
+      {
+        contact.github && (
+          <li>
+            <a href={contact.github}>GitHub</a>
+          </li>
+        )
+      }
+      {
+        contact.linkedin && (
+          <li>
+            <a href={contact.linkedin}>LinkedIn</a>
+          </li>
+        )
+      }
+      {
+        contact.huggingface && (
+          <li>
+            <a href={contact.huggingface}>Hugging Face</a>
+          </li>
+        )
+      }
+      {
+        contact.scholar && (
+          <li>
+            <a href={contact.scholar}>Google Scholar</a>
+          </li>
+        )
+      }
+    </ul>
+  </section>
+</Base>

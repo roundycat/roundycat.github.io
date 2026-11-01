@@ -1,0 +1,24 @@
+---
+// 날짜가 왼쪽에 붙는 목록 (수상, 활동). 넓은 화면에서는 날짜가 왼쪽 여백에 걸립니다.
+import type { DatedItem } from '../data/site';
+import { url } from '../lib/url';
+
+interface Props {
+  items: DatedItem[];
+}
+const { items } = Astro.props;
+---
+
+<ul class="dated dated--stack dated--notes">
+  {
+    items.map((item) => (
+      <li>
+        <span class="date">{item.date}</span>
+        <span>
+          {item.href ? <a href={url(item.href)}>{item.text}</a> : item.text}
+          {item.note && <span class="dated-note">{item.note}</span>}
+        </span>
+      </li>
+    ))
+  }
+</ul>

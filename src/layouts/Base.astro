@@ -1,0 +1,90 @@
+---
+import '@fontsource/ibm-plex-sans-kr/400.css';
+import '@fontsource/ibm-plex-sans-kr/500.css';
+import '@fontsource/ibm-plex-sans-kr/600.css';
+import '../styles/global.css';
+
+import { site } from '../data/site';
+import { getNotes } from '../lib/content';
+import { formatEnglish, formatKorean, lastUpdated } from '../lib/dates';
+import { plainText } from '../lib/markup';
+import { url } from '../lib/url';
+
+interface Props {
+  title?: string;
+  description?: string;
+  lang?: 'ko' | 'en';
+  // 첫 화면에는 위쪽 메뉴를 두지 않습니다. 이름이 이미 첫 문단에 있기 때문입니다.
+  nav?: boolean;
+  current?: 'projects' | 'notes';
+  // 404 처럼 검색에 나오면 안 되는 페이지
+  noindex?: boolean;
+}
+
+const { title, description, lang = 'ko', nav = true, current, noindex = false } = Astro.props;
+
+const pageTitle = title ? `${title} - ${site.name}` : `${site.name} (${site.nameEn})`;
+const pageDescription = description ?? plainText(site.intro);
+const canonical = Astro.site && !noindex ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+
+// 목록 페이지에서는 '현재 페이지', 그 안의 글이나 프로젝트에서는 '현재 위치'로 알려 줍니다.
+const path = Astro.url.pathname.replace(/\/?$/, '/');
+const ariaCurrent = (section: Props['current'], href: string) =>
+  current === section ? (path === url(href) ? 'page' : 'true') : undefined;
+
+const notes = await getNotes();
+const updated = lastUpdated([new Date(site.updated), ...notes.map((n) => n.data.date)]);
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:locale" content={lang === 'ko' ? 'ko_KR' : 'en_US'} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{lang === 'ko' ? '본문으로 건너뛰기' : 'Skip to content'}</a>
+    <div class="page">
+      {
+        nav && (
+          <nav class="site-nav" aria-label={lang === 'ko' ? '사이트 메뉴' : 'Site'}>
+            <a class="home" href={url('/')}>
+              {site.name}
+            </a>
+            <a href={url('/projects/')} aria-current={ariaCurrent('projects', '/projects/')}>
+              프로젝트
+            </a>
+            {notes.length > 0 && (
+              <a href={url('/notes/')} aria-current={ariaCurrent('notes', '/notes/')}>
+                글
+              </a>
+            )}
+          </nav>
+        )
+      }
+      <main id="main">
+        <slot />
+      </main>
+      <footer class="site-footer">
+        {
+          lang === 'ko' ? (
+            <p>마지막 수정 {formatKorean(updated)}</p>
+          ) : (
+            <p>Last updated {formatEnglish(updated)}</p>
+          )
+        }
+      </footer>
+    </div>
+  </body>
+</html>

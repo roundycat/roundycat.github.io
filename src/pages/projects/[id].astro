@@ -1,0 +1,64 @@
+---
+import { render } from 'astro:content';
+import ExampleMark from '../../components/ExampleMark.astro';
+import Prose from '../../layouts/Prose.astro';
+import { getProjects } from '../../lib/content';
+import { url } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project) => ({ params: { id: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { title, summary, period, context, team, stack, links, example } = project.data;
+const { Content } = await render(project);
+---
+
+<Prose title={title} description={summary} current="projects">
+  <article>
+    <header class="article-head">
+      <h1>{title}<ExampleMark show={example} /></h1>
+      <dl class="meta">
+        {
+          period && (
+            <>
+              <dt>기간</dt>
+              <dd>{period}</dd>
+            </>
+          )
+        }
+        <dt>형태</dt>
+        <dd>{[context, team].filter(Boolean).join(', ')}</dd>
+        {
+          stack.length > 0 && (
+            <>
+              <dt>사용한 도구</dt>
+              <dd>{stack.join(', ')}</dd>
+            </>
+          )
+        }
+        {
+          links.length > 0 && (
+            <>
+              <dt>링크</dt>
+              <dd>
+                <ul class="meta-links">
+                  {links.map((link) => (
+                    <li>
+                      <a href={url(link.href)}>{link.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </>
+          )
+        }
+      </dl>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+  <p class="back"><a href={url('/projects/')}>프로젝트 목록으로</a></p>
+</Prose>

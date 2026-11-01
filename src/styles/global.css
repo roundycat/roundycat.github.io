@@ -1,0 +1,475 @@
+/* 색과 글꼴은 :root 에서 한꺼번에 바꿀 수 있습니다. */
+:root {
+  color-scheme: light dark;
+
+  --paper: #ffffff;
+  --ink: #18202b;
+  --muted: #5b6472;
+  --link: #2343c4;
+  --visited: #5a3fa8;
+  --rule: #e3e6ea;
+  --code-bg: #f6f7f9;
+
+  /* 첫 문단의 개체명 주석 (KLUE 태그) */
+  --ps-bg: #ffe8a3;
+  --ps-fg: #8a6100;
+  --og-bg: #d4f0e2;
+  --og-fg: #1e6b48;
+
+  /* 개발 서버에서만 보이는 '예시' 표시 */
+  --example: #b4540a;
+
+  --font-text: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  --font-code: 'IBM Plex Mono', 'IBM Plex Sans KR', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --fs-body: 1.0625rem;
+  --fs-small: 0.9375rem;
+  --fs-tiny: 0.875rem;
+  --measure: 42rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14171c;
+    --ink: #e3e6ea;
+    --muted: #9aa2ae;
+    --link: #9db1ff;
+    --visited: #b9a6f2;
+    --rule: #2c3139;
+    --code-bg: #1d2127;
+
+    --ps-bg: #4d3f12;
+    --ps-fg: #ffe58a;
+    --og-bg: #1d4634;
+    --og-fg: #a6e3c4;
+
+    --example: #f0a35e;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-text);
+  /* 한국어는 어절 단위로 줄을 바꾸고, 긴 주소나 모델 이름만 중간에서 끊습니다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  /* 한글에 가짜 기울임이나 가짜 굵기가 생기지 않게 합니다. */
+  font-synthesis: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--fs-body);
+  line-height: 1.75;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+strong,
+b,
+th {
+  font-weight: 600;
+}
+
+em,
+i {
+  font-style: normal;
+  font-weight: 500;
+}
+
+a {
+  color: var(--link);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+
+a:visited {
+  color: var(--visited);
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  z-index: 10;
+  top: -3rem;
+  left: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--paper);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* 페이지 틀: 왼쪽 정렬 한 단. 넓은 화면에서는 왼쪽 여백에 날짜를 내어 겁니다. */
+.page {
+  box-sizing: content-box;
+  max-width: var(--measure);
+  padding: 3rem 1rem 4rem;
+}
+
+@media (min-width: 40rem) {
+  .page {
+    padding-top: 4rem;
+    padding-inline: 2.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .page {
+    padding-top: 5rem;
+    padding-inline-start: clamp(9.5rem, 16vw - 2rem, 14rem);
+  }
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.5em;
+  margin-bottom: 3rem;
+  font-size: var(--fs-small);
+}
+
+.site-nav a,
+.site-nav a:visited {
+  /* 글자 위치는 그대로 두고 누르는 영역만 넓힙니다. */
+  margin-inline: -0.5em;
+  padding: 0.25em 0.5em;
+  color: var(--ink);
+  text-decoration-color: transparent;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current] {
+  text-decoration-color: currentColor;
+}
+
+.site-nav .home {
+  font-weight: 600;
+}
+
+.site-footer {
+  margin-top: 5rem;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+/* 첫 문단 */
+.intro-block {
+  display: flow-root;
+}
+
+.intro {
+  margin: 0;
+  font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.625rem);
+  line-height: 2;
+  letter-spacing: -0.01em;
+}
+
+.about {
+  margin: 1rem 0 0;
+}
+
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25em;
+  row-gap: 0.25em;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact a {
+  display: inline-block;
+  padding-block: 0.25em;
+}
+
+.photo {
+  display: block;
+  width: 7.5rem;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  margin-bottom: 1.5rem;
+  object-fit: cover;
+}
+
+@media (min-width: 48rem) {
+  .photo {
+    float: right;
+    margin: 0.5rem 0 1rem 2rem;
+  }
+}
+
+/* 개체명 주석: brat 같은 주석 도구처럼 태그를 글자 위에 답니다.
+   태그는 CSS로만 그려서 복사하거나 검색 결과에 나올 때 섞이지 않습니다. */
+/* 주석이 붙은 말과 바로 뒤 조사는 한 덩어리로 줄을 바꿉니다. */
+.ent-run {
+  white-space: nowrap;
+}
+
+/* 형광펜은 글자 높이만큼만 칠해서, 둘째 줄 이후에 와도 태그가 윗줄에 닿지 않게 합니다. */
+.ent {
+  display: inline-block;
+  position: relative;
+  padding: 0 0.14em;
+  border-radius: 2px;
+  background: var(--ent-bg);
+  box-shadow: inset 0 -1px 0 var(--ent-fg);
+  line-height: 1.3;
+}
+
+.ent::before {
+  content: attr(data-label);
+  content: attr(data-label) / '';
+  position: absolute;
+  bottom: calc(100% + 1px);
+  left: 0.14em;
+  color: var(--ent-fg);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.ent--ps {
+  --ent-bg: var(--ps-bg);
+  --ent-fg: var(--ps-fg);
+}
+
+.ent--og {
+  --ent-bg: var(--og-bg);
+  --ent-fg: var(--og-fg);
+}
+
+@media (forced-colors: active) {
+  .ent {
+    outline: 1px solid CanvasText;
+  }
+}
+
+/* 섹션 */
+.section-title {
+  margin: 3.5rem 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 40rem) {
+  .section-title {
+    margin-top: 2.75rem;
+  }
+}
+
+.page-title {
+  margin: 0 0 2rem;
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+}
+
+.more {
+  margin: 1rem 0 0;
+  font-size: var(--fs-small);
+}
+
+/* 프로젝트 목록 */
+.projects {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.projects > li + li {
+  margin-top: 1.75rem;
+}
+
+.project-title {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.project-year {
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.project-summary {
+  margin: 0.25rem 0 0;
+}
+
+.project-context {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  line-height: 1.6;
+}
+
+/* 날짜가 붙는 목록 (글, 소식) */
+.dated {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dated > li {
+  display: grid;
+  grid-template-columns: var(--date-col, 6rem) minmax(0, 1fr);
+  column-gap: 1.25rem;
+  align-items: baseline;
+}
+
+.dated > li + li {
+  margin-top: 0.5rem;
+}
+
+/* 휴대폰에서만 소식의 날짜 칸을 좁힙니다. 그보다 넓으면 글 목록과 같은 칸을 써서 세로로 줄이 맞습니다. */
+@media (max-width: 30rem) {
+  .dated--month {
+    --date-col: 4.25rem;
+  }
+}
+
+.date {
+  color: var(--muted);
+  font-size: var(--fs-tiny);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 30rem) {
+  .dated--stack > li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dated--stack > li + li {
+    margin-top: 0.875rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .dated > li {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+    margin-inline-start: -8rem;
+  }
+
+  .dated .date {
+    text-align: right;
+  }
+}
+
+/* 수상, 활동: 항목마다 둘째 줄에 작은 설명이 붙어서 간격을 조금 더 둡니다. */
+.dated--notes > li + li {
+  margin-top: 0.875rem;
+}
+
+.dated-note {
+  display: block;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  line-height: 1.6;
+}
+
+/* 읽고 있는 논문, 논문 및 발표 */
+.papers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.papers > li + li {
+  margin-top: 1.25rem;
+}
+
+.paper-title {
+  font-weight: 500;
+}
+
+.paper-cite {
+  display: block;
+  color: var(--muted);
+  /* 한글 학회명이 들어가므로 아주 작은 글씨 대신 작은 글씨를 씁니다. */
+  font-size: var(--fs-small);
+  line-height: 1.6;
+}
+
+.paper-note {
+  margin: 0.25rem 0 0;
+}
+
+.paper-links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1em;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-small);
+}
+
+/* 개발 서버에서만 보이는 예시 표시 */
+.example-mark {
+  display: inline-block;
+  margin-inline-start: 0.5em;
+  padding: 0 0.35em;
+  border: 1px dashed currentColor;
+  border-radius: 2px;
+  color: var(--example);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  vertical-align: 0.15em;
+}

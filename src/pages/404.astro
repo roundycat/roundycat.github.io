@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+---
+
+<Base title="페이지를 찾을 수 없습니다" noindex>
+  <h1 class="page-title">페이지를 찾을 수 없습니다</h1>
+  <p>주소가 바뀌었거나 지워진 페이지입니다. <a href={url('/')}>첫 화면</a>에서 다시 찾아보세요.</p>
+</Base>
