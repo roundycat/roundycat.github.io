@@ -23,12 +23,16 @@ export function isoDate(date: Date): string {
 
 let cached: Date | undefined;
 
-// '마지막 수정' 날짜. 빌드한 날이 아니라 마지막 커밋 날짜를 씁니다.
+// '마지막 수정' 날짜. 빌드한 날이 아니라 마지막 커밋 날짜를 한국 시간으로 읽습니다.
+// (관리 화면에서 저장한 커밋은 시간이 UTC 로 기록될 수 있어서, 그대로 읽으면 새벽에 쓴 글이 전날로 나옵니다.)
 // 깃 기록이 없으면 넘겨받은 날짜 중 가장 최근 것을 씁니다.
 export function lastUpdated(fallback: Date[]): Date {
   if (cached) return cached;
   try {
-    const out = execFileSync('git', ['log', '-1', '--format=%cs'], { stdio: ['ignore', 'pipe', 'ignore'] })
+    const out = execFileSync('git', ['log', '-1', '--date=format-local:%Y-%m-%d', '--format=%cd'], {
+      stdio: ['ignore', 'pipe', 'ignore'],
+      env: { ...process.env, TZ: 'Asia/Seoul' },
+    })
       .toString()
       .trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(out)) {

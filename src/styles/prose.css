@@ -224,3 +224,24 @@ pre {
   margin-top: 3rem;
   font-size: var(--fs-small);
 }
+
+/* 글 아래의 이전 글, 다음 글, 목록 링크 */
+.pager {
+  margin-top: 3rem;
+  font-size: var(--fs-small);
+}
+
+.pager p {
+  margin: 0;
+}
+
+.pager p + p {
+  margin-top: 0.25rem;
+}
+
+.pager-label {
+  display: inline-block;
+  min-width: 3.25em;
+  margin-inline-end: 0.5em;
+  color: var(--muted);
+}

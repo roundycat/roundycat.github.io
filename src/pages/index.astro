@@ -1,13 +1,13 @@
 ---
 import DatedList from '../components/DatedList.astro';
 import ExampleMark from '../components/ExampleMark.astro';
+import NoteList from '../components/NoteList.astro';
 import ProjectList from '../components/ProjectList.astro';
 import Base from '../layouts/Base.astro';
 import { activities, awards, news, publications, reading, site } from '../data/site';
 import { existsSync } from 'node:fs';
-import { assertNoExamples, getNotes, getProjects, recentNews } from '../lib/content';
-import { formatDot, isoDate } from '../lib/dates';
-import { internalLinks, renderInline } from '../lib/markup';
+import { assertNoExamples, getNotes, getProjects, recentNews, sitePaths } from '../lib/content';
+import { internalLinks, leftoverMarkup, renderInline } from '../lib/markup';
 import { url } from '../lib/url';
 
 const projects = await getProjects();
@@ -19,25 +19,27 @@ const contact = site.contact;
 const myNames = new Set([site.name, site.nameEn]);
 
 assertNoExamples([
-  ...news.filter((n) => n.example).map((n) => `site.ts 소식 '${n.text}'`),
-  ...reading.filter((r) => r.example).map((r) => `site.ts 논문 '${r.title}'`),
+  ...news.filter((n) => n.example).map((n) => `소식 '${n.text}'`),
+  ...reading.filter((r) => r.example).map((r) => `읽고 있는 논문 '${r.title}'`),
 ]);
 
-// site.ts 에 손으로 적은 내부 링크가 실제로 있는 페이지를 가리키는지 확인합니다.
-// (예시 프로젝트를 지웠는데 첫 문단 링크가 남아 있는 경우 등)
-const routes = new Set([
-  '/',
-  '/projects/',
-  '/notes/',
-  '/en/',
-  ...projects.map((p) => `/projects/${p.id}/`),
-  ...notes.map((n) => `/notes/${n.id}/`),
-]);
+// 첫 문단 표기법이 틀려서 괄호가 글자로 찍혀 나오는 일을 막습니다.
+if (leftoverMarkup(site.intro)) {
+  throw new Error(
+    '첫 문단(src/data/profile.json 의 intro) 표기법을 확인해 주세요. ' +
+      '형광펜은 [글자]{PS} 와 [글자]{OG} 만 쓸 수 있고, 링크 [글자](/주소/) 의 주소에는 공백을 넣을 수 없습니다.',
+  );
+}
+
+// 첫 문단과 소식에 손으로 적은 내부 링크가 실제로 있는 페이지를 가리키는지 확인합니다.
+// (글이나 프로젝트를 지웠는데 링크가 남아 있는 경우 등)
+// 페이지는 아니지만 사이트에 있는 파일(/rss.xml 등)도 링크할 수 있게 둡니다.
+const routes = new Set([...(await sitePaths()), '/rss.xml', '/sitemap.xml', '/robots.txt']);
 const brokenLinks = [...internalLinks(site.intro), ...news.flatMap((n) => (n.href?.startsWith('/') ? [n.href] : []))].filter(
   (href) => !routes.has(href.split('#')[0]) && !existsSync(`public${href}`),
 );
 if (brokenLinks.length > 0) {
-  throw new Error(`site.ts 의 링크가 없는 페이지를 가리킵니다: ${brokenLinks.join(', ')}`);
+  throw new Error(`첫 문단이나 소식(src/data)의 링크가 없는 페이지를 가리킵니다: ${brokenLinks.join(', ')}`);
 }
 ---
 
@@ -147,6 +149,20 @@ if (brokenLinks.length > 0) {
   }
 
   {
+    latestNotes.length > 0 && (
+      <section aria-labelledby="notes">
+        <h2 class="section-title" id="notes">
+          글
+        </h2>
+        <NoteList notes={latestNotes} />
+        <p class="more">
+          <a href={url('/notes/')}>전체 글 보기</a>
+        </p>
+      </section>
+    )
+  }
+
+  {
     awards.length > 0 && (
       <section aria-labelledby="awards">
         <h2 class="section-title" id="awards">
@@ -164,34 +180,6 @@ if (brokenLinks.length > 0) {
           활동
         </h2>
         <DatedList items={activities} />
-      </section>
-    )
-  }
-
-  {
-    latestNotes.length > 0 && (
-      <section aria-labelledby="notes">
-        <h2 class="section-title" id="notes">
-          글
-        </h2>
-        <ol class="dated dated--stack">
-          {latestNotes.map((note) => (
-            <li>
-              <time class="date" datetime={isoDate(note.data.date)}>
-                {formatDot(note.data.date)}
-              </time>
-              <span>
-                <a href={url(`/notes/${note.id}/`)}>{note.data.title}</a>
-                <ExampleMark show={note.data.example} />
-              </span>
-            </li>
-          ))}
-        </ol>
-        {notes.length > latestNotes.length && (
-          <p class="more">
-            <a href={url('/notes/')}>전체 글 보기</a>
-          </p>
-        )}
       </section>
     )
   }

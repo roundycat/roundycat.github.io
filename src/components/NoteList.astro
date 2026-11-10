@@ -1,0 +1,30 @@
+---
+// 글 목록. 첫 화면에서는 날짜와 제목만, 글 목록 페이지에서는 한 줄 설명까지 보여 줍니다.
+import type { CollectionEntry } from 'astro:content';
+import { formatDot, isoDate } from '../lib/dates';
+import { url } from '../lib/url';
+import ExampleMark from './ExampleMark.astro';
+
+interface Props {
+  notes: CollectionEntry<'notes'>[];
+  descriptions?: boolean;
+}
+const { notes, descriptions = false } = Astro.props;
+---
+
+<ol class:list={['dated', 'dated--stack', descriptions && 'dated--notes']}>
+  {
+    notes.map((note) => (
+      <li>
+        <time class="date" datetime={isoDate(note.data.date)}>
+          {formatDot(note.data.date)}
+        </time>
+        <span>
+          <a href={url(`/notes/${note.id}/`)}>{note.data.title}</a>
+          <ExampleMark show={note.data.example} />
+          {descriptions && note.data.description && <span class="dated-note">{note.data.description}</span>}
+        </span>
+      </li>
+    ))
+  }
+</ol>

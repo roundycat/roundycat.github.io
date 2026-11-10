@@ -1,0 +1,440 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms@0.262.1/schema/sveltia-cms.json
+#
+# 글쓰기 화면(Sveltia CMS) 설정입니다. 주소: https://roundycat.github.io/admin/
+# 이 파일은 사이트와 함께 공개됩니다. 토큰이나 비밀번호를 여기에 적지 마세요.
+# 필드 이름과 종류는 src/content.config.ts(글, 프로젝트)와 src/data/schema.ts(첫 화면)의 형식과 맞춰 두었습니다.
+# 형식을 바꾸면 여기도 같이 바꿉니다.
+# index.html 의 CMS 버전(0.262.1)에서 확인한 설정입니다. 버전을 올리면 위 스키마 주소의 버전도 같이 바꿉니다.
+
+backend:
+  name: github
+  repo: roundycat/roundycat.github.io
+  branch: main
+  # 서버 없이 쓰므로 토큰 로그인만 켭니다. (OAuth 버튼은 인증 서버가 있어야 동작합니다.)
+  auth_methods: [token]
+  commit_messages:
+    create: '{{collection}} 추가: {{slug}}'
+    update: '{{collection}} 수정: {{slug}}'
+    delete: '{{collection}} 삭제: {{slug}}'
+    uploadMedia: '파일 올림: {{path}}'
+    deleteMedia: '파일 삭제: {{path}}'
+
+site_url: https://roundycat.github.io
+app_title: 홈페이지 글쓰기
+logo:
+  src: /favicon.svg
+
+# 올리는 파일 이름을 영문, 숫자, 하이픈, 밑줄만 남기고 정리합니다. (아래 slugify_filename 과 함께 동작합니다.)
+# 한글이나 공백은 빠지고, 남는 글자가 없으면 임의의 영문·숫자 12자가 이름이 됩니다.
+# 글과 프로젝트의 주소(파일 이름)는 직접 적고 아래 pattern 으로 검사하므로 이 설정의 영향을 받지 않습니다.
+slug:
+  encoding: ascii
+
+# 글이나 프로젝트에 속하지 않는 파일(CV PDF 등)이 올라가는 곳입니다. 사이트에서는 /uploads/파일이름 으로 열립니다.
+media_folder: /public/uploads
+public_folder: /uploads
+
+media_libraries:
+  all:
+    # 10 MB 보다 큰 파일은 올리지 않습니다. (저장소가 무거워지는 것을 막습니다.)
+    max_file_size: 10485760
+    # 파일 이름을 소문자로 바꾸고 위 slug 규칙으로 정리합니다. 예: 'Figure 1 (final).PNG' → 'figure-1-final.png'
+    slugify_filename: true
+    transformations:
+      # 휴대폰 사진(JPEG, HEIC)은 올릴 때 WebP 로 바꾸고 긴 변을 2048px 로 줄입니다. 위치 정보(Exif)도 지워집니다.
+      # PNG(스크린샷, 그래프)는 그대로 둡니다.
+      jpeg:
+        format: webp
+        quality: 85
+        width: 2048
+        height: 2048
+      heic:
+        format: webp
+        quality: 85
+        width: 2048
+        height: 2048
+
+output:
+  # 비워 둔 선택 항목은 파일에 쓰지 않습니다.
+  omit_empty_optional_fields: true
+  # src/data 의 JSON 파일은 공백 두 칸으로 들여 씁니다.
+  json:
+    indent_style: space
+    indent_size: 2
+
+collections:
+  - name: notes
+    label: 글
+    label_singular: 글
+    icon: edit_note
+    description: '저장하면 몇 분 뒤 사이트에 올라갑니다. 초안을 켜 둔 글은 사이트에 나오지 않습니다.'
+    folder: src/content/notes
+    extension: md
+    format: yaml-frontmatter
+    create: true
+    # 파일 이름(= 주소)은 새 글을 만들 때 직접 적습니다. 한글 제목에서 자동으로 만들지 않습니다.
+    # 저장한 뒤에는 이 화면에서 바꿀 수 없습니다. 꼭 바꿔야 하면 GitHub 에서 파일 이름을 바꿉니다.
+    slug:
+      editable: [create]
+      hint: '주소에 쓰일 영문 이름입니다. 예: lora-rank 라고 적으면 /notes/lora-rank/ 가 됩니다. 저장한 뒤에는 여기서 바꿀 수 없습니다.'
+      pattern: ['^[a-z0-9]+(-[a-z0-9]+)*$', '영문 소문자, 숫자, 하이픈(-)만 쓸 수 있습니다. 예: lora-rank']
+    preview_path: '/notes/{{slug}}/'
+    # 머리말에 aliases 항목을 덧붙이지 않습니다. (이 사이트는 리다이렉트를 쓰지 않습니다.)
+    aliases_field: false
+    # 그림은 src/content/notes/images 에 올라가고, 본문에서는 ./images/파일이름 으로 가리킵니다.
+    media_folder: /src/content/notes/images
+    public_folder: ./images
+    summary: "{{date | date('YYYY-MM-DD')}} {{title}} {{draft | ternary('(초안)', '')}}"
+    sortable_fields:
+      - { field: date, label: 날짜, default_sort: desc }
+      - title
+    fields:
+      - name: title
+        label: 제목
+        widget: string
+      - name: date
+        label: 날짜
+        widget: datetime
+        type: date
+        default: '{{now}}'
+        hint: '날짜만 저장됩니다.'
+      - name: description
+        label: 한 줄 설명
+        widget: string
+        required: false
+        hint: '글 목록, 검색 결과, 링크 미리보기에 보일 한 문장입니다. 비워 둬도 됩니다.'
+      - name: draft
+        label: 초안
+        widget: boolean
+        default: false
+        required: false
+        hint: '켜 두면 사이트에는 나오지 않습니다. 다만 저장소가 공개라서 GitHub 에서는 누구나 볼 수 있습니다.'
+      - name: body
+        label: 본문
+        widget: markdown
+        # 마크다운 원문 그대로 편집하고 저장합니다. 수식의 역슬래시와 밑줄이 바뀌지 않게 하려는 설정입니다.
+        # rich_text 모드를 추가하면 수식이 깨집니다.
+        modes: [raw]
+        buttons: [bold, italic, code, link, heading-two, heading-three, bulleted-list, numbered-list, quote]
+        editor_components: [code-block, image, table]
+        use_emoji_autocomplete: false
+        hint: '마크다운으로 씁니다. 그림은 그림 모양 단추(에셋)를 눌러 「글」 폴더에 먼저 올리고, 거기 보이는 파일 이름 그대로 `![설명](./images/파일이름)` 을 적습니다. 미리 보기에 그림이 보이면 경로가 맞는 것입니다. 수식은 미리 보기에서 그려지지 않고 원문으로 보입니다. 금액의 달러 기호는 `\$5` 처럼 역슬래시를 붙여 씁니다.'
+
+  - name: projects
+    label: 프로젝트
+    label_singular: 프로젝트
+    icon: work
+    description: '프로젝트 목록과 상세 페이지입니다. 순서 숫자가 작을수록 위에 보입니다.'
+    folder: src/content/projects
+    extension: md
+    format: yaml-frontmatter
+    create: true
+    # 파일 이름(= 주소)은 새 프로젝트를 만들 때 직접 적습니다. 저장한 뒤에는 이 화면에서 바꿀 수 없습니다.
+    # (첫 문단(src/data/profile.json)이 /projects/meridian/ 같은 주소로 링크하고 있어서, 이름이 바뀌면 배포가 멈춥니다.)
+    slug:
+      editable: [create]
+      hint: '주소에 쓰일 영문 이름입니다. 예: my-project 라고 적으면 /projects/my-project/ 가 됩니다. 저장한 뒤에는 여기서 바꿀 수 없습니다.'
+      pattern: ['^[a-z0-9]+(-[a-z0-9]+)*$', '영문 소문자, 숫자, 하이픈(-)만 쓸 수 있습니다. 예: my-project']
+    preview_path: '/projects/{{slug}}/'
+    aliases_field: false
+    # 그림은 src/content/projects/images 에 올라가고, 본문에서는 ./images/파일이름 으로 가리킵니다.
+    media_folder: /src/content/projects/images
+    public_folder: ./images
+    summary: "{{order}}. {{title}} {{draft | ternary('(초안)', '')}}"
+    sortable_fields:
+      - { field: order, label: 순서, default_sort: asc }
+      - title
+    fields:
+      - name: title
+        label: 제목
+        widget: string
+      - name: summary
+        label: 요약
+        widget: text
+        hint: '목록에 보이는 한두 문장입니다. 무엇을 했고 결과가 어땠는지 적습니다. 줄을 바꾸지 않고 이어서 씁니다.'
+      - name: period
+        label: 기간
+        widget: string
+        required: false
+        hint: '예: 2026.03 – 2026.06 또는 2026.10. 시작 시기를 모르면 비워 둡니다.'
+      - name: context
+        label: 맥락
+        widget: string
+        hint: '예: 개인 프로젝트, 자연어처리 수업 (2026년 1학기), 연구 프로젝트'
+      - name: team
+        label: 팀
+        widget: string
+        required: false
+        hint: '팀이었다면 인원과 맡은 부분을 적습니다. 혼자 했다면 비워 둡니다.'
+      - name: stack
+        label: 사용한 도구
+        label_singular: 도구
+        widget: list
+        required: false
+        hint: '한 칸에 하나씩 적습니다. 상세 페이지에만 보입니다.'
+      - name: links
+        label: 링크
+        label_singular: 링크
+        widget: list
+        required: false
+        summary: '{{label}}'
+        hint: '코드, 보고서, 데모처럼 실제로 열리는 주소만 넣습니다.'
+        fields:
+          - name: label
+            label: 이름
+            widget: string
+            hint: '예: 코드, 분석 보고서 (PDF)'
+          - name: href
+            label: 주소
+            widget: string
+            pattern: ['^(https?://\S+|/\S*)$', 'https:// 로 시작하는 주소나 /projects/meridian/ 같은 사이트 안 주소를 적습니다.']
+      - name: titleEn
+        label: 영어 제목
+        widget: string
+        required: false
+        hint: '영어 제목과 영어 요약을 둘 다 채우면 English 페이지에 나옵니다.'
+      - name: summaryEn
+        label: 영어 요약
+        widget: text
+        required: false
+      - name: order
+        label: 순서
+        widget: number
+        value_type: int
+        min: 0
+        default: 100
+        hint: '숫자가 작을수록 목록 위쪽에 보입니다.'
+      - name: draft
+        label: 초안
+        widget: boolean
+        default: false
+        required: false
+        hint: '켜 두면 사이트에는 나오지 않습니다. 첫 문단이나 소식에서 이 프로젝트로 링크하고 있다면 그 링크를 먼저 지웁니다. 저장소가 공개라서 GitHub 에서는 누구나 볼 수 있습니다.'
+      - name: body
+        label: 본문
+        widget: markdown
+        modes: [raw]
+        buttons: [bold, italic, code, link, heading-two, heading-three, bulleted-list, numbered-list, quote]
+        editor_components: [code-block, image, table]
+        use_emoji_autocomplete: false
+        hint: '마크다운으로 씁니다. 그림은 그림 모양 단추(에셋)를 눌러 「프로젝트」 폴더에 먼저 올리고, 거기 보이는 파일 이름 그대로 `![설명](./images/파일이름)` 을 적습니다. 미리 보기에 그림이 보이면 경로가 맞는 것입니다.'
+
+  # 첫 화면의 소개와 목록. src/data 안의 JSON 파일을 고칩니다. 형식은 src/data/schema.ts 에 있습니다.
+  - name: home
+    label: 첫 화면
+    label_singular: 첫 화면
+    icon: home
+    description: '첫 화면에 보이는 소개와 목록입니다. 저장하면 몇 분 뒤 사이트에 반영됩니다.'
+    editor:
+      preview: false
+    files:
+      - name: profile
+        label: 소개와 연락처
+        icon: person
+        file: src/data/profile.json
+        fields:
+          - name: intro
+            label: 첫 문단
+            widget: text
+            # src/lib/markup.ts 의 leftoverMarkup 과 같은 검사입니다. 표기법을 바꾸면 여기도 같이 바꿉니다.
+            pattern: ['^(?:\[[^\]]+\]\{(?:PS|OG)\}|\[[^\]]+\]\([^)\s]+\)|\](?![{(])|[^\]])*$', '형광펜은 [글자]{PS} 와 [글자]{OG} 두 가지이고, 링크 주소에는 공백을 넣을 수 없습니다.']
+            hint: '형광펜은 `[정하민]{PS}` (인명), `[연세대학교]{OG}` (기관) 두 가지만 쓸 수 있습니다. 링크는 `[글자](/projects/meridian/)` 처럼 적습니다. 조사는 괄호 밖에 둡니다. 없는 페이지로 링크하면 사이트가 갱신되지 않습니다.'
+          - name: about
+            label: 둘째 문단
+            widget: text
+            hint: '학년, 졸업 예정 시기, 참여 중인 연구, 찾고 있는 자리를 짧게 적습니다.'
+          - name: bioEn
+            label: 영어 소개
+            widget: text
+            hint: 'English 페이지(/en/) 맨 위에 나옵니다.'
+          - name: photo
+            label: 사진
+            widget: image
+            required: false
+            hint: '선택입니다. 세로 3:4 비율이 잘 맞습니다. 비워 두면 사진 없이 나옵니다. 제거하거나 바꿔도 전에 올린 파일은 사이트에 남습니다. 내리려면 그림 모양 단추(에셋)의 「전역 에셋」에서 삭제합니다.'
+          - name: contact
+            label: 연락처
+            widget: object
+            hint: '비워 둔 항목은 화면에 나오지 않습니다.'
+            fields:
+              - { name: email, label: 이메일, widget: string, type: email, required: false }
+              - { name: github, label: GitHub 주소, widget: string, type: url, required: false }
+              - { name: linkedin, label: LinkedIn 주소, widget: string, type: url, required: false }
+              - { name: huggingface, label: Hugging Face 주소, widget: string, type: url, required: false }
+              - { name: scholar, label: Google Scholar 주소, widget: string, type: url, required: false }
+              - name: cv
+                label: CV 파일
+                widget: file
+                required: false
+                hint: 'PDF 를 올리면 첫 화면에 CV 링크가 생깁니다. 전화번호, 주소, 생년월일이 없는 공개용 파일만 올립니다. 제거하거나 다른 파일로 바꿔도 전에 올린 파일은 사이트에 남습니다. 내리려면 그림 모양 단추(에셋)의 「전역 에셋」에서 삭제합니다. 삭제해도 저장소 기록에는 남습니다.'
+              - name: cvUpdated
+                label: CV 수정한 달
+                widget: string
+                required: false
+                hint: '예: 2026.11. CV 링크 옆에 괄호로 보입니다.'
+
+      - name: publications
+        label: 논문 및 발표
+        icon: article
+        file: src/data/publications.json
+        fields:
+          - name: items
+            label: 논문 및 발표
+            label_singular: 논문
+            widget: list
+            required: false
+            add_to_top: true
+            collapsed: true
+            summary: '{{title}}'
+            hint: '게재나 발표가 확정된 것만 넣습니다. 위에 있는 것이 먼저 보입니다.'
+            fields:
+              - name: authors
+                label: 저자
+                label_singular: 저자
+                widget: list
+                min: 1
+                hint: "한 칸에 한 명씩, 실린 순서대로 적습니다. 본인 이름을 '정하민' 이나 'Hamin Jeoung' 으로 적으면 굵게 표시됩니다."
+              - { name: title, label: 제목, widget: string }
+              - name: venue
+                label: 실린 곳
+                widget: string
+                hint: '예: 융합신호처리학회논문지 26권 2호, 80–85쪽, 2025'
+              - name: type
+                label: 종류
+                widget: string
+                required: false
+                hint: '예: 학술지 논문, 제1저자'
+              - name: links
+                label: 링크
+                label_singular: 링크
+                widget: list
+                required: false
+                summary: '{{label}}'
+                fields:
+                  - { name: label, label: 이름, widget: string, hint: '예: DOI, PDF' }
+                  - name: href
+                    label: 주소
+                    widget: string
+                    pattern: ['^(https?://\S+|/\S*)$', 'https:// 로 시작하는 주소나 /projects/meridian/ 같은 사이트 안 주소를 적습니다.']
+
+      - name: awards
+        label: 수상
+        icon: emoji_events
+        file: src/data/awards.json
+        fields:
+          - name: items
+            label: 수상
+            label_singular: 수상
+            widget: list
+            required: false
+            add_to_top: true
+            collapsed: true
+            summary: '{{date}} {{text}}'
+            hint: '위에 있는 것이 먼저 보입니다. 새 항목은 맨 위에 생깁니다. 순서는 끌어서 바꿉니다.'
+            fields:
+              - name: date
+                label: 날짜
+                widget: string
+                hint: '적은 그대로 보입니다. 예: 2026.06'
+              - name: text
+                label: 내용
+                widget: string
+                hint: '팀으로 받았다면 팀 이름만 적고 다른 팀원 이름은 넣지 않습니다.'
+              - name: note
+                label: 설명
+                widget: string
+                required: false
+                hint: '둘째 줄에 작게 보입니다. 주최나 수여 기관을 적습니다.'
+              - name: href
+                label: 링크
+                widget: string
+                required: false
+                pattern: ['^(https?://\S+|/\S*)$', 'https:// 로 시작하는 주소나 /projects/meridian/ 같은 사이트 안 주소를 적습니다.']
+
+      - name: activities
+        label: 활동
+        icon: event
+        file: src/data/activities.json
+        fields:
+          - name: items
+            label: 활동
+            label_singular: 활동
+            widget: list
+            required: false
+            add_to_top: true
+            collapsed: true
+            summary: '{{date}} {{text}}'
+            hint: '시작한 때가 최근인 것부터 둡니다. 새 항목은 맨 위에 생깁니다. 순서는 끌어서 바꿉니다.'
+            fields:
+              - name: date
+                label: 날짜
+                widget: string
+                hint: "적은 그대로 보입니다. 예: 2026.07, 기간은 '2026.03 – 08', 진행 중이면 '2025.09 –'"
+              - { name: text, label: 내용, widget: string }
+              - name: note
+                label: 설명
+                widget: string
+                required: false
+                hint: '둘째 줄에 작게 보입니다. 과정 이름이나 기관을 적습니다.'
+              - name: href
+                label: 링크
+                widget: string
+                required: false
+                pattern: ['^(https?://\S+|/\S*)$', 'https:// 로 시작하는 주소나 /projects/meridian/ 같은 사이트 안 주소를 적습니다.']
+
+      - name: news
+        label: 소식
+        icon: campaign
+        file: src/data/news.json
+        fields:
+          - name: items
+            label: 소식
+            label_singular: 소식
+            widget: list
+            required: false
+            add_to_top: true
+            collapsed: true
+            summary: '{{date}} {{text}}'
+            hint: '사이트를 마지막으로 갱신한 때를 기준으로 최근 12개월 안의 것만 최신순으로 4개까지 첫 화면에 보입니다. 글이나 프로젝트 목록에 이미 있는 것은 다시 쓰지 않습니다.'
+            fields:
+              - name: date
+                label: 연도와 달
+                widget: string
+                pattern: ['^\d{4}\.(0[1-9]|1[0-2])$', '2026.11 처럼 연도.월 형식으로 적습니다.']
+                hint: '예: 2026.11'
+              - name: text
+                label: 내용
+                widget: string
+                hint: '명사형으로 짧게 씁니다. 예: ○○ 학회 포스터 발표'
+              - name: href
+                label: 링크
+                widget: string
+                required: false
+                pattern: ['^(https?://\S+|/\S*)$', 'https:// 로 시작하는 주소나 /projects/meridian/ 같은 사이트 안 주소를 적습니다.']
+                hint: '사이트 안의 페이지라면 /projects/meridian/ 처럼 적습니다. 없는 페이지로 링크하면 사이트가 갱신되지 않습니다.'
+
+      - name: reading
+        label: 읽고 있는 논문
+        icon: menu_book
+        file: src/data/reading.json
+        fields:
+          - name: items
+            label: 읽고 있는 논문
+            label_singular: 논문
+            widget: list
+            required: false
+            add_to_top: true
+            collapsed: true
+            summary: '{{title}}'
+            hint: '위에서부터 3개까지 첫 화면에 보입니다.'
+            fields:
+              - { name: title, label: 제목, widget: string }
+              - { name: authors, label: 저자, widget: string, hint: '예: Kim et al.' }
+              - { name: venue, label: 실린 곳, widget: string, hint: '예: ACL' }
+              - { name: year, label: 연도, widget: number, value_type: int, min: 1900 }
+              - { name: href, label: 주소, widget: string, type: url, hint: '예: `https://arxiv.org/abs/...`' }
+              - name: note
+                label: 메모
+                widget: text
+                required: false
+                hint: '감상보다 궁금한 점이나 걸리는 점을 한두 문장으로 적습니다.'

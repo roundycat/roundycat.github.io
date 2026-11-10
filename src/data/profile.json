@@ -1,0 +1,15 @@
+{
+  "intro": "[정하민]{PS}입니다. [연세대학교 미래캠퍼스]{OG} 소프트웨어학부에서 자연어처리를 공부합니다. 요즘은 공동 저자들과 함께, 한의사 국가시험으로 언어 모델을 평가하는 [벤치마크](/projects/meridian/) 논문을 다듬고 있습니다.",
+  "about": "4학년입니다. 2025년 9월부터 한국연구재단 지원 연구과제 「환자유래 건강데이터 기반 노화 질환 조기 예측을 위한 수리 기반 인공지능 알고리즘 개발」에 연구원으로 참여하고 있습니다.",
+  "bioEn": "I study natural language processing in the Department of Software at Yonsei University Mirae Campus, where I am a fourth-year student. I am one of four authors of a benchmark that evaluates language models on the Korean Medicine licensing examination, and we are revising the paper. Since September 2025 I have been a research assistant on a National Research Foundation of Korea project on AI for early prediction of aging-related diseases.",
+  "photo": "",
+  "contact": {
+    "email": "roundykitten@yonsei.ac.kr",
+    "github": "https://github.com/roundycat",
+    "linkedin": "https://www.linkedin.com/in/haminjeoung/",
+    "huggingface": "",
+    "scholar": "",
+    "cv": "",
+    "cvUpdated": ""
+  }
+}

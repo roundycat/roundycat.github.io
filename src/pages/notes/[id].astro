@@ -7,16 +7,20 @@ import { formatDot, isoDate } from '../../lib/dates';
 import { url } from '../../lib/url';
 
 export async function getStaticPaths() {
+  // 최신 글이 앞에 있으므로, 앞쪽이 다음 글이고 뒤쪽이 이전 글입니다.
   const notes = await getNotes();
-  return notes.map((note) => ({ params: { id: note.id }, props: { note } }));
+  return notes.map((note, i) => ({
+    params: { id: note.id },
+    props: { note, newer: notes[i - 1], older: notes[i + 1] },
+  }));
 }
 
-const { note } = Astro.props;
+const { note, newer, older } = Astro.props;
 const { title, description, date, example } = note.data;
 const { Content } = await render(note);
 ---
 
-<Prose title={title} description={description} current="notes">
+<Prose title={title} description={description} current="notes" published={date}>
   <article>
     <header class="article-head">
       <h1>{title}<ExampleMark show={example} /></h1>
@@ -26,5 +30,23 @@ const { Content } = await render(note);
       <Content />
     </div>
   </article>
-  <p class="back"><a href={url('/notes/')}>글 목록으로</a></p>
+  <nav class="pager" aria-label="다른 글">
+    {
+      older && (
+        <p>
+          <span class="pager-label">이전 글</span>
+          <a href={url(`/notes/${older.id}/`)}>{older.data.title}</a>
+        </p>
+      )
+    }
+    {
+      newer && (
+        <p>
+          <span class="pager-label">다음 글</span>
+          <a href={url(`/notes/${newer.id}/`)}>{newer.data.title}</a>
+        </p>
+      )
+    }
+    <p><a href={url('/notes/')}>글 목록으로</a></p>
+  </nav>
 </Prose>

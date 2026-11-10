@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>홈페이지 글쓰기</title>
+  </head>
+  <body>
+    <!--
+      Sveltia CMS 를 CDN 에서 불러옵니다. 설정은 같은 폴더의 config.yml 에서 읽습니다.
+
+      버전(0.262.1)과 integrity 값을 고정해 두었습니다. 이 파일을 고치기 전에는 본체 스크립트가 바뀌지 않습니다.
+      (화면 번역 파일과 부속 코드(QR 코드, 사진 변환, 코드 강조 등)는 실행 중에 unpkg 에서 따로 받아 옵니다.
+       받아 올 주소와 버전은 본체 스크립트 안에 적혀 있지만, 이 파일들은 integrity 검사를 받지 않습니다.)
+
+      버전을 올릴 때는 아래 두 곳을 같이 바꿉니다.
+        1) 주소의 버전 번호 (최신 번호: https://github.com/sveltia/sveltia-cms/releases)
+        2) integrity 값. 터미널에서 다음 명령으로 구합니다.
+           curl -sL https://unpkg.com/@sveltia/cms@버전/dist/sveltia-cms.js | openssl dgst -sha384 -binary | openssl base64 -A
+           (나온 값 앞에 sha384- 를 붙입니다.)
+
+      Sveltia CMS 공식 문서는 버전을 고정하지 않는 쪽을 권합니다. 항상 최신판을 쓰려면 아래 script 대신 이 줄을 씁니다.
+        <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+    -->
+    <script
+      src="https://unpkg.com/@sveltia/cms@0.262.1/dist/sveltia-cms.js"
+      integrity="sha384-0I8SJ0aZj6wQEpF/FIs2iCJqDlIhSR5xzNQNZFYMRgxcTNPPtFqCLM+PYhVLP+gg"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

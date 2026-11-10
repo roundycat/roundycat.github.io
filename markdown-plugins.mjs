@@ -72,6 +72,24 @@ export const glueMath = {
   },
 };
 
+
+// 글 안의 그림은 본문 문단 폭(36em = 38.25rem)보다 크게 보이지 않습니다. 브라우저가 화면 폭이 아니라
+// 그 폭에 맞는 크기의 파일을 고르게 합니다. 폭을 바꾸면 src/styles/prose.css 의 .prose > p 와 같이 바꿉니다.
+// 크기를 여러 개 만들지 않는 그림(다른 사이트의 그림, public 폴더의 그림)은 그대로 둡니다.
+const IMAGE_SIZES = '(min-width: 43.25rem) 38.25rem, 100vw';
+
+export const imageSizes = {
+  name: 'image-sizes',
+  element: {
+    filter: ['img'],
+    visit(node, ctx) {
+      const src = node.properties?.src;
+      if (typeof src !== 'string' || /^([a-z][a-z0-9+.-]*:|\/)/i.test(src)) return;
+      ctx.setProperty(node, 'sizes', IMAGE_SIZES);
+    },
+  },
+};
+
 // astro.config.mjs 에 base 를 설정했을 때, 글 안의 '/...' 링크와 이미지 주소 앞에도 base 를 붙입니다.
 export function prefixBase(base) {
   const prefix = (base ?? '').replace(/\/$/, '');

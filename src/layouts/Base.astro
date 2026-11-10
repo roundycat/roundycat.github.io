@@ -19,12 +19,15 @@ interface Props {
   current?: 'projects' | 'notes';
   // 404 처럼 검색에 나오면 안 되는 페이지
   noindex?: boolean;
+  // 글이라면 쓴 날짜
+  published?: Date;
 }
 
-const { title, description, lang = 'ko', nav = true, current, noindex = false } = Astro.props;
+const { title, description, lang = 'ko', nav = true, current, noindex = false, published } = Astro.props;
 
 const pageTitle = title ? `${title} - ${site.name}` : `${site.name} (${site.nameEn})`;
-const pageDescription = description ?? plainText(site.intro);
+// 설명이 비어 있으면 첫 문단을 대신 씁니다.
+const pageDescription = description || plainText(site.intro);
 const canonical = Astro.site && !noindex ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 
 // 목록 페이지에서는 '현재 페이지', 그 안의 글이나 프로젝트에서는 '현재 위치'로 알려 줍니다.
@@ -47,7 +50,14 @@ const updated = lastUpdated([new Date(site.updated), ...notes.map((n) => n.data.
     {noindex && <meta name="robots" content="noindex" />}
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
-    <meta property="og:type" content="website" />
+    <link rel="sitemap" href={url('/sitemap.xml')} />
+    {
+      notes.length > 0 && (
+        <link rel="alternate" type="application/rss+xml" title={`${site.name} 글`} href={url('/rss.xml')} />
+      )
+    }
+    <meta property="og:type" content={published ? 'article' : 'website'} />
+    {published && <meta property="article:published_time" content={published.toISOString()} />}
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
     {canonical && <meta property="og:url" content={canonical} />}

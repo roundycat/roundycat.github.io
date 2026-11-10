@@ -18,13 +18,27 @@ export function assertNoExamples(labels: string[]) {
 export async function getProjects() {
   const projects = await getCollection('projects', visible);
   assertNoExamples(projects.filter((p) => p.data.example).map((p) => `projects/${p.id}`));
-  return projects.sort((a, b) => a.data.order - b.data.order);
+  return projects.sort((a, b) => a.data.order - b.data.order || a.id.localeCompare(b.id));
 }
 
+// 최신 글이 앞에 옵니다. 같은 날 쓴 글은 파일 이름 순서로 두어 빌드할 때마다 순서가 바뀌지 않게 합니다.
 export async function getNotes() {
   const notes = await getCollection('notes', visible);
   assertNoExamples(notes.filter((n) => n.data.example).map((n) => `notes/${n.id}`));
-  return notes.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  return notes.sort((a, b) => b.data.date.getTime() - a.data.date.getTime() || a.id.localeCompare(b.id));
+}
+
+// 사이트 안에 실제로 있는 페이지 주소. 손으로 적은 내부 링크 검사와 sitemap 에 같이 씁니다.
+// 글이 하나도 없는 동안에는 /notes/ 를 넣지 않습니다(그 페이지는 검색에서 빼 둡니다).
+export async function sitePaths(): Promise<string[]> {
+  const [projects, notes] = await Promise.all([getProjects(), getNotes()]);
+  return [
+    '/',
+    '/projects/',
+    ...projects.map((p) => `/projects/${p.id}/`),
+    ...(notes.length > 0 ? ['/notes/', ...notes.map((n) => `/notes/${n.id}/`)] : []),
+    '/en/',
+  ];
 }
 
 // '2026.03 – 2026.06' 에서 끝나는 해를 꺼냅니다.
@@ -34,17 +48,17 @@ export function projectYear(period = ''): string {
 }
 
 function monthIndex(date: string): number {
-  const m = /^(\d{4})\.(\d{2})$/.exec(date);
-  if (!m) throw new Error(`site.ts 소식 날짜는 'YYYY.MM' 형식으로 써 주세요: '${date}'`);
+  const m = /^(\d{4})\.(0[1-9]|1[0-2])$/.exec(date);
+  if (!m) throw new Error(`소식(src/data/news.json) 날짜는 '2026.11' 처럼 연도.월 형식으로 써 주세요: '${date}'`);
   return Number(m[1]) * 12 + Number(m[2]) - 1;
 }
 
-// 최근 12개월 안의 소식만 최신순으로 최대 4개. 2개보다 적으면 섹션을 숨기도록 빈 배열을 돌려줍니다.
+// 최근 12개월 안의 소식만 최신순으로 최대 4개. 기준은 빌드하는 날(한국 시간)의 달입니다.
 export function recentNews(items: NewsItem[], now: Date): NewsItem[] {
-  const nowMonth = now.getUTCFullYear() * 12 + now.getUTCMonth();
-  const recent = items
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const nowMonth = kst.getUTCFullYear() * 12 + kst.getUTCMonth();
+  return items
     .filter((item) => nowMonth - monthIndex(item.date) < 12)
     .sort((a, b) => monthIndex(b.date) - monthIndex(a.date))
     .slice(0, 4);
-  return recent.length >= 2 ? recent : [];
 }

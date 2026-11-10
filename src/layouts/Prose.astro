@@ -10,10 +10,12 @@ interface Props {
   title: string;
   description?: string;
   current?: 'projects' | 'notes';
+  // 글이라면 쓴 날짜. 링크 미리보기에 '글'로 표시되게 합니다.
+  published?: Date;
 }
-const { title, description, current } = Astro.props;
+const { title, description, current, published } = Astro.props;
 ---
 
-<Base title={title} description={description} current={current}>
+<Base title={title} description={description} current={current} published={published}>
   <slot />
 </Base>
